@@ -1,0 +1,7 @@
+*.obj
+nerf.las
+funclist
+build/
+dist/
+defmplabxtrace.log
+defmplabxtrace.log.inx
