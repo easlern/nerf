@@ -51,6 +51,39 @@ int8_t strcmp (const char* a, const char* b){
     return 0;
 }
 
+uint8_t senderAddress [5];
+uint8_t receiverAddress [5];
+uint8_t message [9] = "TESTING!";
+void loopSendingTestMessage(){
+    TRISC = 0x00;
+
+    message [8] = 0x00;
+    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5);
+    while(1)
+    {
+        LATC = 0xff;
+        nrf24l01p_sendMessage(receiverAddress, message);
+        LATC = 0x00;
+        for (unsigned long x = 0; x < 1000000; x++); // Sleep for a bit (1 000 000 is roughly 4 seconds at 70F)
+    }
+}
+
+void loopReceivingTestMessage(){
+    TRISC = 0x00;
+    LATC = 0x00;
+
+    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5);
+    nrf24l01p_listenForMessage(receiverAddress);
+    while (1)
+    {
+        for (unsigned int x = 0; x < 9; x++) message [x] = 0x00;
+        if (nrf24l01p_isMessageWaiting()){
+            nrf24l01p_getMessage (message);
+            if (message [0] == 'T') LATC = 0xff;
+        }
+    }
+}
+
 void main(void)
 {
     /* Configure the oscillator for the device */
@@ -59,100 +92,25 @@ void main(void)
     /* Initialize I/O and Peripherals for application */
     InitApp();
 
-    /* TODO <INSERT USER APPLICATION CODE HERE> */
+    TRISA = 0x00; // If you use RA2 as an input without first setting it as an output, some charge lingers and the input reads high even if the pin is tied to ground. I have a theory as to why this happens but all I really know for sure is that setting it as output first seems to prevent the weird thing from happening.
 
-    TRISA = 0x00; // These are the pull-ups apparently? And if you don't pull down (0x00) to start, some charge remains and it reads high if the input line is low when you use it as an input.  :P
+    for (int x = 0; x < 5; x++) senderAddress [x] = 0x02;
+    for (int x = 0; x < 5; x++) receiverAddress [x] = 0x01;
 
-
-    /*
-    const uint8_t pinToTest = 2;
-    
-    TRISA = 0xff;
-    TRISC = 0x00;
-    while (true){
-        if (PORTA & (0x01 << pinToTest)) LATC = 0xff;
-        else LATC = 0x00;
-    }
-    */
-    
-
-    uint8_t myAddress [5];
-    for (int x = 0; x < 5; x++) myAddress [x] = 0x01;
     
     uint8_t receivedMessage [9];
 
 
     //runTests();
 
+    //loopReceivingTestMessage();
+    loopSendingTestMessage();
 
-    /*
-    // set up ports to input on RA0 and RA2 (clock and MOSI)
-    volatile unsigned char* trisA = &TRISA;
-    volatile unsigned char* latA = &LATA;
-    volatile unsigned char* portA = &PORTA;
-    *trisA = 0x01 | (0x01 << 2);
-    while (true){
-        // set MISO high so the master will start banging
-        *latA |= (0x01 << 1);
-        for (unsigned int x = 0; x < 8; x++){
-            while (!(*portA & 0x01)); // wait for clock to go high
-                //if (x > 0){
-                    if (*portA & (0x01 << 2)) *latA |= (0x01 << 1); // if MOSI is high, set MISO high
-                    else *latA &= ~(0x01 << 1); // otherwise, set MISO low
-                //}
-            //if (x == 7) LATA &= ~(0x01 << 1);
-            while (*portA & 0x01); // wait for clock to go low
-        }
-    }
-    */
 
-    /*
-    bitbang_init (gpioProvider_createStandardGpioProvider (&TRISA, &LATA, &PORTA));
-    while (true){
-        uint8_t receivedByte = bitbang_receiveByteAsSlave();
-        bitbang_setDiagnosticMessage (receivedByte);
-    }
-    */
-    
-
-    nerf_init (&TRISA, &LATA, &PORTA, &TRISB, &LATB, &PORTB, myAddress);
+    nerf_init (&TRISA, &LATA, &PORTA, &TRISB, &LATB, &PORTB, receiverAddress);
 
     while (true){
         nerf_receiveAndRespondToCommand();
     }
-
-    /*
-    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5);
-    while(1)
-    {
-        if (ping){
-            for (unsigned long long x = 0; x < 1000; x++){
-                LATA = ~PORTA;
-                nrf24l01p_sendMessage(otherAddress, message);
-            }
-            //uint8_t retransmitted = nrf24l01p_getRetransmittedPacketsCount();
-        }
-        else{
-            LATA = 0x00;
-            for (uint8_t x = 0; x < 9; x++) receivedMessage[x] = '\0';
-            nrf24l01p_listenForMessage(myAddress);
-            for (unsigned long long x = 0; x < 10000; x++){
-                if (nrf24l01p_isMessageWaiting()){
-                    nrf24l01p_getMessage(receivedMessage);
-                    if (strcmp (message, receivedMessage) == 0){
-                    //if (receivedMessage [0] == 'H' && receivedMessage [1] == 'E' && receivedMessage [2] == 'L' && receivedMessage [3] == 'L'
-                    //        && receivedMessage [4] == 'O' && receivedMessage [5] == ' ' && receivedMessage [6] == 'Y' && receivedMessage [7] == 'O' && receivedMessage [8] == '\0'){
-                    //if (receivedMessage [0] != 0){
-                        LATC |= 0x01 << 3;
-                    }
-                    else{
-                        LATC &= ~(0x01 << 3);
-                    }
-                }
-            }
-        }
-        ping = !ping;
-    }
-    */
 }
 

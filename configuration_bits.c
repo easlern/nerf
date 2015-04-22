@@ -51,3 +51,4 @@
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
 #pragma config WDT=OFF
+#pragma config BOREN = OFF      // Brown-out Reset Enable bits (Brown-out Reset disabled in hardware and software)

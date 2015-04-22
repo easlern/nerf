@@ -189,6 +189,7 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
     uint8_t byte = 0x27; // 250 Kbps data rate, max Tx power, setup LNA (low noise amplifier) gain
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_RF_SETUP, &byte, 1);
 
-    byte = 0x13; // Set delay of 500uS between retries
+    byte = 0x10; // Set delay of 500uS between retries
+    byte |= 0x0f; // Retransmit up to 15 times
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_SETUP_RETR, &byte, 1);
 }

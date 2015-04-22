@@ -88,6 +88,11 @@ void nerf_receiveAndRespondToCommand(){
         nerf_clearOutgoingMessage();
     }
     if (nerf_incomingMessageLength == 0 && nrf24l01p_isMessageWaiting()){
+        /*
+        TRISC = 0x00;
+        LATC |= 0x01;
+        */
         nerf_incomingMessageLength = nrf24l01p_getMessage (nerf_incomingMessage);
+        //LATC &= ~(0x01);
     }
 }
