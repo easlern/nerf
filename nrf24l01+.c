@@ -24,6 +24,9 @@ uint8_t nrf24l01p_csnPin = 5;
 uint8_t nrf24l01p_payloadWidth = 8;
 uint8_t nrf24l01p_addressWidth = 5;
 uint8_t nrf24l01p_registerConfig = 0x00;
+
+uint8_t nrf24l01p_currentTargetAddress[5];
+
 void nrf24l01p_setClock(uint8_t enabled){
     if (enabled) *nrf24l01p_lat |= 0x01 << nrf24l01p_sckPin; // Set clock high
     else *nrf24l01p_lat &= ~(0x01 << nrf24l01p_sckPin); // Set clock low
@@ -148,6 +151,22 @@ uint8_t nrf24l01p_getLostPacketsCount(){
     count &= 0xf0;
     return count >> 4;
 }
+
+void nrf24l01p_setTargetAddress(uint8_t* targetAddress){
+    bool changed = false;
+    for (uint8_t x = 0; x < nrf24l01p_addressWidth; x++){
+        if (nrf24l01p_currentTargetAddress[x] != targetAddress[x]){
+            nrf24l01p_currentTargetAddress[x] = targetAddress[x];
+            changed = true;
+        }
+    }
+
+    if (changed){
+        nrf24l01p_writeRegister(NRF24L01P_REGISTER_TX_ADDR, targetAddress, nrf24l01p_addressWidth);
+        nrf24l01p_writeRegister(NRF24L01P_REGISTER_RX_ADDR_P0, targetAddress, nrf24l01p_addressWidth); // Address needs to be written here for auto ACK
+    }
+}
+
 void nrf24l01p_sendMessage(uint8_t* targetAddress, uint8_t* message){ // targetAddress must be at least nrf24l01p_addressWidth wide. payload array must be at least nrf24l01p_payloadWidth wide
     *nrf24l01p_lat &= ~(0x01 << nrf24l01p_cePin); // Set CE low to reset (not sure if this is necessary)
     uint8_t status = nrf24l01p_getStatus();
@@ -156,11 +175,10 @@ void nrf24l01p_sendMessage(uint8_t* targetAddress, uint8_t* message){ // targetA
     nrf24l01p_registerConfig &= ~(0x01); // Set RX/TX to TX mode
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_CONFIG, &nrf24l01p_registerConfig, 1);
     nrf24l01p_writeCommand(NRF24L01P_COMMAND_FLUSH_TX);
-    nrf24l01p_writeRegister(NRF24L01P_REGISTER_TX_ADDR, targetAddress, nrf24l01p_addressWidth);
-    nrf24l01p_writeRegister(NRF24L01P_REGISTER_RX_ADDR_P0, targetAddress, nrf24l01p_addressWidth); // Address needs to be written here for auto ACK
+    nrf24l01p_setTargetAddress(targetAddress);
     nrf24l01p_writeCommandWithData(NRF24L01P_COMMAND_W_TX_PAYLOAD, message, nrf24l01p_payloadWidth);
     *nrf24l01p_lat |= (0x01 << nrf24l01p_cePin); // Set CE high to start transmission
-    for (unsigned long long x = 0; x < 100; x++); // Hold CE high for 10uS to kickstart transmission
+    //for (unsigned long long x = 0; x < 100; x++); // Hold CE high for 10uS to kickstart transmission
     *nrf24l01p_lat &= ~(0x01 << nrf24l01p_cePin); // Set CE low to end transmission
 }
 
@@ -181,7 +199,7 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
     *nrf24l01p_tris = (0x01 << nrf24l01p_misoPin) | (0x01 << nrf24l01p_irqPin);
     *nrf24l01p_lat = (0x01 << nrf24l01p_csnPin);
 
-    for (unsigned long long x = 0; x < 100000; x++); // Delay for power-on
+    for (unsigned long long x = 0; x < 100; x++); // Delay for power-on
 
     nrf24l01p_registerConfig = (0x01 << 3) | (0x01 << 2) | (0x01 << 1); // PWR_UP, CRC 2 bytes
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_CONFIG, &nrf24l01p_registerConfig, 1);
@@ -192,4 +210,13 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
     byte = 0x10; // Set delay of 500uS between retries
     byte |= 0x0f; // Retransmit up to 15 times
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_SETUP_RETR, &byte, 1);
+}
+
+void nrf24l01p_sleep(){
+    nrf24l01p_registerConfig &= ~(0x01 << 1); // Clear PWR_UP bit
+    nrf24l01p_writeRegister(NRF24L01P_REGISTER_CONFIG, &nrf24l01p_registerConfig, 1);
+}
+void nrf24l01p_wake(){
+    nrf24l01p_registerConfig |= (0x01 << 1); // Set PWR_UP bit
+    nrf24l01p_writeRegister(NRF24L01P_REGISTER_CONFIG, &nrf24l01p_registerConfig, 1);
 }

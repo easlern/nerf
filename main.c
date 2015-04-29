@@ -51,6 +51,15 @@ int8_t strcmp (const char* a, const char* b){
     return 0;
 }
 
+void sleepForABit(){
+    nerf_sleep();
+    SWDTEN = 1; // Enable the watchdog timer
+    CLRWDT();   // Reset the watchdog timer
+    SLEEP();    // Go to sleep until the watchdog timer goes off, then resume execution
+    SWDTEN = 0; // Disable the watchdog timer
+    nerf_wake();
+}
+
 uint8_t senderAddress [5];
 uint8_t receiverAddress [5];
 uint8_t message [9] = "TESTING!";
@@ -64,7 +73,8 @@ void loopSendingTestMessage(){
         LATC = 0xff;
         nrf24l01p_sendMessage(receiverAddress, message);
         LATC = 0x00;
-        for (unsigned long x = 0; x < 1000000; x++); // Sleep for a bit (1 000 000 is roughly 4 seconds at 70F)
+        
+        sleepForABit();
     }
 }
 
@@ -99,7 +109,6 @@ void main(void)
 
     
     uint8_t receivedMessage [9];
-
 
     //runTests();
 

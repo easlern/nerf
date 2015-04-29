@@ -24,11 +24,15 @@ void ConfigureOscillator(void)
     are stable before resuming execution of the main project. */
 
     // PIC18LF2525
-    OSCCONbits.IRCF = 1;
-    OSCCONbits.IRCF0 = 1;
-    OSCCONbits.IRCF1 = 1;
-    OSCCONbits.IRCF2 = 1;
-    OSCTUNEbits.PLLEN = 1;
+    OSCCONbits.IRCF &= ~(0x07);     // Clear oscillator frequency bits
+    //OSCCONbits.IRCF |= 0x07;      // 8000 KHz
+    //OSCCONbits.IRCF |= 0x03;      //  500 KHz
+    OSCCONbits.IRCF |= 0x00;      //   31 KHz
+
+    // Double the clock rate?
+    //OSCTUNEbits.PLLEN = 1;
+    // Don't double the clock rate!
+    OSCTUNEbits.PLLEN = 0;
 
     ADCON0bits.ADON = 0; // Disable A/D module
     ADCON1bits.PCFG0 = 1; // Make all A/D pins digital

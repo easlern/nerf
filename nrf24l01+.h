@@ -54,6 +54,8 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
 
 void nrf24l01p_sendMessage(uint8_t* targetAddress, uint8_t* message);
 void nrf24l01p_listenForMessage(uint8_t* address);
+void nrf24l01p_sleep();
+void nrf24l01p_wake();
 uint8_t nrf24l01p_isMessageWaiting();
 uint8_t nrf24l01p_getMessage(uint8_t* message);
 uint8_t nrf24l01p_getRetransmittedPacketsCount();

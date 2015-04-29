@@ -36,5 +36,8 @@ void InitApp(void)
     /* Configure the IPEN bit (1=on) in RCON to turn on/off int priorities */
 
     /* Enable interrupts */
+
+    /* Set sleep stuff */
+    OSCCONbits.IDLEN = 0; // 0=sleep, 1=idle on SLEEP command
 }
 

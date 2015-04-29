@@ -96,3 +96,10 @@ void nerf_receiveAndRespondToCommand(){
         //LATC &= ~(0x01);
     }
 }
+
+void nerf_sleep(){
+    nrf24l01p_sleep();
+}
+void nerf_wake(){
+    nrf24l01p_wake();
+}
