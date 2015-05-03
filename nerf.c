@@ -36,10 +36,12 @@ void nerf_clearIncomingMessage(){
 }
 
 void nerf_init (volatile unsigned char* hostTris, volatile unsigned char* hostLat, volatile unsigned char* hostPort,
-        volatile unsigned char* nrfTris, volatile unsigned char* nrfLat, volatile unsigned char* nrfPort, uint8_t* myAddress){
+        volatile unsigned char* nrfTris, volatile unsigned char* nrfLat, volatile unsigned char* nrfPort, uint8_t* myAddress, bool retransmitLostPackets){
     GpioProvider standardProvider = gpioProvider_createStandardGpioProvider (hostTris, hostLat, hostPort);
     bitbang_init (standardProvider);
-    nrf24l01p_init (NERF_MAX_MESSAGE_LENGTH, nrfTris, nrfLat, nrfPort, 0, 1, 2, 3, 4, 5);
+    uint8_t maxTriesPerPacket = 0;
+    if (retransmitLostPackets) maxTriesPerPacket = 15;
+    nrf24l01p_init (NERF_MAX_MESSAGE_LENGTH, nrfTris, nrfLat, nrfPort, 0, 1, 2, 3, 4, 5, maxTriesPerPacket);
     nrf24l01p_listenForMessage (myAddress);
     for (unsigned x = 0; x < NERF_ADDRESS_LENGTH; x++) nerf_targetAddress [x] = 0x00;
     nerf_clearOutgoingMessage();

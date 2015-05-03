@@ -5,7 +5,7 @@
  * Created on July 23, 2014, 9:14 PM
  *
  * Version:
- * 1.0 2014?        Created
+ * 1.0 2014     Created
  */
 
 #ifndef NRF24L01__H
@@ -50,7 +50,7 @@ extern "C" {
     
 
 void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile unsigned char* lat, volatile unsigned char* port,
-        uint8_t misoPin, uint8_t sckPin, uint8_t cePin, uint8_t irqPin, uint8_t mosiPin, uint8_t csnPin);
+        uint8_t misoPin, uint8_t sckPin, uint8_t cePin, uint8_t irqPin, uint8_t mosiPin, uint8_t csnPin, uint8_t maxRetriesPerPacket);
 
 void nrf24l01p_sendMessage(uint8_t* targetAddress, uint8_t* message);
 void nrf24l01p_listenForMessage(uint8_t* address);

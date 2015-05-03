@@ -19,25 +19,6 @@
 #include "tests.h"
 #include "bitbang.h"
 
-/******************************************************************************/
-/* User Global Variable Declaration                                           */
-/******************************************************************************/
-
-/* i.e. uint8_t <variable_name>; */
-
-void blink(){
-    TRISC = 0x00;
-    uint8_t glow = true;
-    while (1){
-        LATC = glow ? 0xff : 0x00;
-        for (unsigned long long x = 0; x < 100000; x++);
-        glow = !glow;
-    }
-}
-
-/******************************************************************************/
-/* Main Program                                                               */
-/******************************************************************************/
 
 int8_t strcmp (const char* a, const char* b){
     int8_t next = -1;
@@ -62,12 +43,12 @@ void sleepForABit(){
 
 uint8_t senderAddress [5];
 uint8_t receiverAddress [5];
-uint8_t message [9] = "TESTING!";
+uint8_t message [9] = "TESTING!\0";
 void loopSendingTestMessage(){
     TRISC = 0x00;
 
     message [8] = 0x00;
-    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5);
+    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5, 0);
     while(1)
     {
         LATC = 0xff;
@@ -82,7 +63,7 @@ void loopReceivingTestMessage(){
     TRISC = 0x00;
     LATC = 0x00;
 
-    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5);
+    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5, 15);
     nrf24l01p_listenForMessage(receiverAddress);
     while (1)
     {
@@ -116,7 +97,7 @@ void main(void)
     loopSendingTestMessage();
 
 
-    nerf_init (&TRISA, &LATA, &PORTA, &TRISB, &LATB, &PORTB, receiverAddress);
+    nerf_init (&TRISA, &LATA, &PORTA, &TRISB, &LATB, &PORTB, receiverAddress, true);
 
     while (true){
         nerf_receiveAndRespondToCommand();

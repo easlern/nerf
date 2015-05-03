@@ -183,7 +183,7 @@ void nrf24l01p_sendMessage(uint8_t* targetAddress, uint8_t* message){ // targetA
 }
 
 void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile unsigned char* lat, volatile unsigned char* port,
-        uint8_t misoPin, uint8_t sckPin, uint8_t cePin, uint8_t irqPin, uint8_t mosiPin, uint8_t csnPin){
+        uint8_t misoPin, uint8_t sckPin, uint8_t cePin, uint8_t irqPin, uint8_t mosiPin, uint8_t csnPin, uint8_t maxRetriesPerPacket){
     nrf24l01p_tris = tris;
     nrf24l01p_lat = lat;
     nrf24l01p_port = port;
@@ -199,7 +199,8 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
     *nrf24l01p_tris = (0x01 << nrf24l01p_misoPin) | (0x01 << nrf24l01p_irqPin);
     *nrf24l01p_lat = (0x01 << nrf24l01p_csnPin);
 
-    for (unsigned long long x = 0; x < 100; x++); // Delay for power-on
+    //for (unsigned long long x = 0; x < 100; x++); // Delay for power-on
+    if (maxRetriesPerPacket > 15) maxRetriesPerPacket = 15;
 
     nrf24l01p_registerConfig = (0x01 << 3) | (0x01 << 2) | (0x01 << 1); // PWR_UP, CRC 2 bytes
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_CONFIG, &nrf24l01p_registerConfig, 1);
@@ -208,7 +209,7 @@ void nrf24l01p_init(uint8_t payloadWidth, volatile unsigned char* tris, volatile
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_RF_SETUP, &byte, 1);
 
     byte = 0x10; // Set delay of 500uS between retries
-    byte |= 0x0f; // Retransmit up to 15 times
+    byte |= maxRetriesPerPacket; // Retransmit up to maxRetriesPerPacket times
     nrf24l01p_writeRegister(NRF24L01P_REGISTER_SETUP_RETR, &byte, 1);
 }
 
