@@ -51,5 +51,5 @@
 #pragma config LVP=OFF
 #pragma config MCLRE=OFF
 #pragma config WDT=OFF          // Watchdog timer off so we can control it from software
-#pragma config WDTPS = 4096     // Watchdog Timer Postscale Select bits (1:1024 is about 4 seconds, regardless of oscillator settings)
+#pragma config WDTPS = 1024     // Watchdog Timer Postscale Select bits (1:1024 is about 4 seconds, regardless of oscillator settings)
 #pragma config BOREN = OFF      // Brown-out Reset Enable bits (Brown-out Reset disabled in hardware and software)

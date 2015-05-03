@@ -75,6 +75,26 @@ void loopReceivingTestMessage(){
     }
 }
 
+uint8_t messageOutOfPosition[9] = "POS1_0\0";
+uint8_t messageInPosition[9] = "POS1_1\0";
+void loopAsPositionSensor(){
+    TRISC = 0x00; // TRISC is output
+    LATC = 0x00;
+
+    uint8_t* message = messageOutOfPosition;
+    nrf24l01p_init (8, &TRISB, &LATB, &PORTB, 0, 1, 2, 3, 4, 5, 15);
+    while(1)
+    {
+        TRISC |= (0x01 << 3); // RC3 is input
+        message = messageOutOfPosition;
+        if (PORTC & (0x01 << 3)) message = messageInPosition;
+        TRISC &= ~(0x01 << 3); // RC3 is output (off)
+        nrf24l01p_sendMessage(receiverAddress, message);
+
+        sleepForABit();
+    }
+}
+
 void main(void)
 {
     /* Configure the oscillator for the device */
@@ -94,7 +114,8 @@ void main(void)
     //runTests();
 
     //loopReceivingTestMessage();
-    loopSendingTestMessage();
+    //loopSendingTestMessage();
+    loopAsPositionSensor();
 
 
     nerf_init (&TRISA, &LATA, &PORTA, &TRISB, &LATB, &PORTB, receiverAddress, true);
